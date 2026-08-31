@@ -122,11 +122,7 @@ export function GymView({ date, initialCompletions, initialBlockCompletion }: Pr
           </span>
           <button
             onClick={() => go(1)}
-            disabled={isFuture}
-            className={cn(
-              "flex h-9 w-9 items-center justify-center border-2 border-black transition",
-              isFuture ? "text-black/20 cursor-not-allowed" : "text-black hover:bg-black hover:text-white"
-            )}
+            className="flex h-9 w-9 items-center justify-center border-2 border-black text-black transition hover:bg-black hover:text-white"
             aria-label="Next day"
           >
             <ChevronRight className="h-4 w-4" />
