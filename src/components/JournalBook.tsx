@@ -6,13 +6,21 @@ import { cn, dateKey, parseDateKey } from "@/lib/utils";
 import { saveJournal } from "@/lib/data";
 import type { DayRow } from "@/lib/types";
 
+interface HealthAverages {
+  avgSteps: number | null;
+  avgScreenTimeMin: number | null;
+  avgSleepHours: number | null;
+  daysWithData: number;
+}
+
 interface Props {
   today: string;
   todayDay: DayRow | null;
   pastEntries: DayRow[];
+  healthAverages?: HealthAverages;
 }
 
-export function JournalBook({ today, todayDay, pastEntries: initialPast }: Props) {
+export function JournalBook({ today, todayDay, pastEntries: initialPast, healthAverages }: Props) {
   const [free, setFree] = useState(todayDay?.journal_free ?? "");
   const [energy, setEnergy] = useState<number | null>(todayDay?.energy ?? null);
   const [steps, setSteps] = useState<string>(todayDay?.steps?.toString() ?? "");
@@ -75,8 +83,15 @@ export function JournalBook({ today, todayDay, pastEntries: initialPast }: Props
 
         {/* Health metrics — quick log */}
         <div className="mt-4 border-2 border-black/10 p-4">
-          <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-black/40 mb-3">
-            Daily check-in
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-black/40">
+              Daily check-in
+            </div>
+            {healthAverages && healthAverages.daysWithData > 0 && (
+              <span className="text-[8px] font-bold uppercase tracking-wider text-black/20">
+                your 7d avg: {healthAverages.avgSteps?.toLocaleString() ?? "—"} steps · {healthAverages.avgScreenTimeMin != null ? `${Math.floor(healthAverages.avgScreenTimeMin / 60)}h${healthAverages.avgScreenTimeMin % 60 > 0 ? `${healthAverages.avgScreenTimeMin % 60}m` : ""}` : "—"} screen · {healthAverages.avgSleepHours ?? "—"}h sleep
+              </span>
+            )}
           </div>
           <div className="grid grid-cols-3 gap-3">
             {/* Steps */}

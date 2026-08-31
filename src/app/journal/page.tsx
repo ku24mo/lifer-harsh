@@ -1,16 +1,17 @@
 import { Nav, ContentShell } from "@/components/Nav";
 import { ManifestoTicker } from "@/components/ManifestoTicker";
 import { JournalBook } from "@/components/JournalBook";
-import { getDay, getJournalEntries } from "@/lib/data";
+import { getDay, getJournalEntries, getHealthAverages } from "@/lib/data";
 import { dateKey } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function JournalPage() {
   const today = dateKey(new Date());
-  const [todayDay, pastEntries] = await Promise.all([
+  const [todayDay, pastEntries, healthAverages] = await Promise.all([
     getDay(today),
     getJournalEntries(),
+    getHealthAverages(today),
   ]);
 
   return (
@@ -31,6 +32,7 @@ export default async function JournalPage() {
             today={today}
             todayDay={todayDay}
             pastEntries={pastEntries}
+            healthAverages={healthAverages}
           />
         </div>
       </ContentShell>

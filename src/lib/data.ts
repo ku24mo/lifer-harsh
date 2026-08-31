@@ -118,6 +118,39 @@ export async function getJournalEntries(): Promise<DayRow[]> {
   }
 }
 
+/** Compute 7-day rolling averages for health metrics. */
+export async function getHealthAverages(
+  endDate: string
+): Promise<{ avgSteps: number | null; avgScreenTimeMin: number | null; avgSleepHours: number | null; daysWithData: number }> {
+  try {
+    const supabase = await db();
+    const start = parseDateKey(endDate);
+    start.setDate(start.getDate() - 6); // 7 days including endDate
+    const startDate = makeDateKey(start);
+
+    const { data } = await supabase
+      .from("days")
+      .select("steps, screen_time_min, sleep_hours")
+      .gte("date", startDate)
+      .lte("date", endDate);
+
+    const rows = (data ?? []) as Pick<DayRow, "steps" | "screen_time_min" | "sleep_hours">[];
+
+    const stepsRows = rows.filter((r) => r.steps != null);
+    const screenRows = rows.filter((r) => r.screen_time_min != null);
+    const sleepRows = rows.filter((r) => r.sleep_hours != null);
+
+    return {
+      avgSteps: stepsRows.length > 0 ? Math.round(stepsRows.reduce((a, r) => a + (r.steps ?? 0), 0) / stepsRows.length) : null,
+      avgScreenTimeMin: screenRows.length > 0 ? Math.round(screenRows.reduce((a, r) => a + (r.screen_time_min ?? 0), 0) / screenRows.length) : null,
+      avgSleepHours: sleepRows.length > 0 ? Math.round((sleepRows.reduce((a, r) => a + (r.sleep_hours ?? 0), 0) / sleepRows.length) * 10) / 10 : null,
+      daysWithData: rows.filter((r) => r.steps != null || r.screen_time_min != null || r.sleep_hours != null).length,
+    };
+  } catch {
+    return { avgSteps: null, avgScreenTimeMin: null, avgSleepHours: null, daysWithData: 0 };
+  }
+}
+
 export async function saveJournal(
   date: string,
   answers: Record<string, string>,

@@ -28,14 +28,22 @@ import { StickyNotes } from "./StickyNotes";
 import { HeroTimer } from "./HeroTimer";
 import type { BlockCompletionRow, DayRow, StickyNoteRow } from "@/lib/types";
 
+interface HealthAverages {
+  avgSteps: number | null;
+  avgScreenTimeMin: number | null;
+  avgSleepHours: number | null;
+  daysWithData: number;
+}
+
 interface Props {
   date: string;
   day: DayRow | null;
   blocks: BlockCompletionRow[];
   stickyNotes: StickyNoteRow[];
+  healthAverages?: HealthAverages;
 }
 
-export function DayView({ date, day: initialDay, blocks: initialBlocks, stickyNotes: initialNotes }: Props) {
+export function DayView({ date, day: initialDay, blocks: initialBlocks, stickyNotes: initialNotes, healthAverages }: Props) {
   const [selectedDate, setSelectedDate] = useState(date);
   const [day, setDay] = useState<DayRow | null>(initialDay);
   const [blocks, setBlocks] = useState<BlockCompletionRow[]>(initialBlocks);
@@ -252,55 +260,112 @@ export function DayView({ date, day: initialDay, blocks: initialBlocks, stickyNo
               </Link>
             )}
 
-            {/* Health check-in — today's logged metrics */}
-            {!isFuture && (day?.steps != null || day?.screen_time_min != null || day?.sleep_hours != null) && (
+            {/* Health check-in — today's metrics + 7-day averages */}
+            {!isFuture && (
               <div className="mt-6 border-t-2 border-black pt-4">
-                <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-black/40 mb-3">
-                  Today's check-in
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  {day?.steps != null && (
-                    <div className="flex flex-col items-center border-2 border-black/10 p-2">
-                      <Footprints className="h-4 w-4 text-black/40 mb-1" />
-                      <span className="text-[18px] font-bold tabular-nums text-black leading-none">
-                        {day.steps.toLocaleString()}
-                      </span>
-                      <span className="mt-0.5 text-[8px] font-bold uppercase tracking-wider text-black/40">steps</span>
-                    </div>
-                  )}
-                  {day?.screen_time_min != null && (
-                    <div className="flex flex-col items-center border-2 border-black/10 p-2">
-                      <Smartphone className="h-4 w-4 text-black/40 mb-1" />
-                      <span className="text-[18px] font-bold tabular-nums text-black leading-none">
-                        {Math.floor(day.screen_time_min / 60)}h{day.screen_time_min % 60 > 0 ? `${day.screen_time_min % 60}m` : ""}
-                      </span>
-                      <span className="mt-0.5 text-[8px] font-bold uppercase tracking-wider text-black/40">screen</span>
-                    </div>
-                  )}
-                  {day?.sleep_hours != null && (
-                    <div className="flex flex-col items-center border-2 border-black/10 p-2">
-                      <Moon className="h-4 w-4 text-black/40 mb-1" />
-                      <span className="text-[18px] font-bold tabular-nums text-black leading-none">
-                        {day.sleep_hours}h
-                      </span>
-                      <span className="mt-0.5 text-[8px] font-bold uppercase tracking-wider text-black/40">sleep</span>
-                    </div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-black/40">
+                    Health check-in
+                  </div>
+                  {healthAverages && healthAverages.daysWithData > 0 && (
+                    <span className="text-[8px] font-bold uppercase tracking-wider text-black/20">
+                      7d avg
+                    </span>
                   )}
                 </div>
-              </div>
-            )}
 
-            {/* Health check-in prompt — no data logged yet */}
-            {!isFuture && day?.steps == null && day?.screen_time_min == null && day?.sleep_hours == null && (
-              <Link
-                href="/journal"
-                className="mt-6 flex items-center gap-2 border-t-2 border-black pt-4 text-black/30 transition hover:text-black"
-              >
-                <Footprints className="h-4 w-4" />
-                <span className="text-[11px] font-bold uppercase tracking-wider">
-                  log steps, screen time, sleep →
-                </span>
-              </Link>
+                {/* If no data logged today, show prompt + averages */}
+                {day?.steps == null && day?.screen_time_min == null && day?.sleep_hours == null ? (
+                  <div>
+                    <Link
+                      href="/journal"
+                      className="flex items-center gap-2 text-black/30 transition hover:text-black mb-3"
+                    >
+                      <Footprints className="h-4 w-4" />
+                      <span className="text-[11px] font-bold uppercase tracking-wider">
+                        log today's metrics →
+                      </span>
+                    </Link>
+                    {healthAverages && healthAverages.daysWithData > 0 && (
+                      <div className="grid grid-cols-3 gap-3">
+                        {healthAverages.avgSteps != null && (
+                          <div className="flex flex-col items-center border-2 border-black/10 p-2 opacity-50">
+                            <Footprints className="h-4 w-4 text-black/40 mb-1" />
+                            <span className="text-[16px] font-bold tabular-nums text-black leading-none">
+                              {healthAverages.avgSteps.toLocaleString()}
+                            </span>
+                            <span className="mt-0.5 text-[8px] font-bold uppercase tracking-wider text-black/40">avg steps</span>
+                          </div>
+                        )}
+                        {healthAverages.avgScreenTimeMin != null && (
+                          <div className="flex flex-col items-center border-2 border-black/10 p-2 opacity-50">
+                            <Smartphone className="h-4 w-4 text-black/40 mb-1" />
+                            <span className="text-[16px] font-bold tabular-nums text-black leading-none">
+                              {Math.floor(healthAverages.avgScreenTimeMin / 60)}h{healthAverages.avgScreenTimeMin % 60 > 0 ? `${healthAverages.avgScreenTimeMin % 60}m` : ""}
+                            </span>
+                            <span className="mt-0.5 text-[8px] font-bold uppercase tracking-wider text-black/40">avg screen</span>
+                          </div>
+                        )}
+                        {healthAverages.avgSleepHours != null && (
+                          <div className="flex flex-col items-center border-2 border-black/10 p-2 opacity-50">
+                            <Moon className="h-4 w-4 text-black/40 mb-1" />
+                            <span className="text-[16px] font-bold tabular-nums text-black leading-none">
+                              {healthAverages.avgSleepHours}h
+                            </span>
+                            <span className="mt-0.5 text-[8px] font-bold uppercase tracking-wider text-black/40">avg sleep</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* Today's data logged — show today + averages */
+                  <div className="grid grid-cols-3 gap-3">
+                    {day?.steps != null && (
+                      <div className="flex flex-col items-center border-2 border-black/10 p-2">
+                        <Footprints className="h-4 w-4 text-black/40 mb-1" />
+                        <span className="text-[18px] font-bold tabular-nums text-black leading-none">
+                          {day.steps.toLocaleString()}
+                        </span>
+                        <span className="mt-0.5 text-[8px] font-bold uppercase tracking-wider text-black/40">steps</span>
+                        {healthAverages?.avgSteps != null && (
+                          <span className="mt-1 text-[9px] font-bold tabular-nums text-black/30">
+                            7d: {healthAverages.avgSteps.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {day?.screen_time_min != null && (
+                      <div className="flex flex-col items-center border-2 border-black/10 p-2">
+                        <Smartphone className="h-4 w-4 text-black/40 mb-1" />
+                        <span className="text-[18px] font-bold tabular-nums text-black leading-none">
+                          {Math.floor(day.screen_time_min / 60)}h{day.screen_time_min % 60 > 0 ? `${day.screen_time_min % 60}m` : ""}
+                        </span>
+                        <span className="mt-0.5 text-[8px] font-bold uppercase tracking-wider text-black/40">screen</span>
+                        {healthAverages?.avgScreenTimeMin != null && (
+                          <span className="mt-1 text-[9px] font-bold tabular-nums text-black/30">
+                            7d: {Math.floor(healthAverages.avgScreenTimeMin / 60)}h{healthAverages.avgScreenTimeMin % 60 > 0 ? `${healthAverages.avgScreenTimeMin % 60}m` : ""}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {day?.sleep_hours != null && (
+                      <div className="flex flex-col items-center border-2 border-black/10 p-2">
+                        <Moon className="h-4 w-4 text-black/40 mb-1" />
+                        <span className="text-[18px] font-bold tabular-nums text-black leading-none">
+                          {day.sleep_hours}h
+                        </span>
+                        <span className="mt-0.5 text-[8px] font-bold uppercase tracking-wider text-black/40">sleep</span>
+                        {healthAverages?.avgSleepHours != null && (
+                          <span className="mt-1 text-[9px] font-bold tabular-nums text-black/30">
+                            7d: {healthAverages.avgSleepHours}h
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
