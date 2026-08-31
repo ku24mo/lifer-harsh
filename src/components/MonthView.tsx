@@ -134,6 +134,21 @@ export function MonthView({ year: initialYear, month: initialMonth, bundle: init
           todayKey={todayKey}
           notesByDate={notesByDate}
         />
+
+        {/* Legend */}
+        <div className="mt-4 flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase text-black/40">
+          <span>slacked</span>
+          <span className="h-4 w-4 bg-black" />
+          <span className="h-4 w-4 bg-black/20" />
+          <span className="h-4 w-4 bg-black/40" />
+          <span className="h-4 w-4 bg-[var(--acid-dim)]" />
+          <span className="h-4 w-4 bg-[var(--acid)]" />
+          <span>perfect</span>
+          <span className="ml-3 flex items-center gap-1">
+            <span className="h-1.5 w-1.5 bg-[var(--acid)] border border-black/20" />
+            <span>notes</span>
+          </span>
+        </div>
       </div>
       </div>
     </div>
