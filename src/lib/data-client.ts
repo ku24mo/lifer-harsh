@@ -93,3 +93,41 @@ export async function fetchStickyNotesRange(
     return [];
   }
 }
+
+export async function fetchGymCompletions(
+  date: string
+): Promise<Record<string, boolean>> {
+  try {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("gym_completions")
+      .select("exercise_key, completed")
+      .eq("date", date);
+    const map: Record<string, boolean> = {};
+    for (const row of (data ?? []) as { exercise_key: string; completed: boolean }[]) {
+      map[row.exercise_key] = row.completed;
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}
+
+export async function toggleGymExerciseClient(
+  date: string,
+  exerciseKey: string,
+  completed: boolean
+): Promise<void> {
+  try {
+    const supabase = createClient();
+    const completed_at = completed ? new Date().toISOString() : null;
+    await supabase
+      .from("gym_completions")
+      .upsert(
+        { date, exercise_key: exerciseKey, completed, completed_at },
+        { onConflict: "date,exercise_key" }
+      );
+  } catch (e) {
+    console.error("toggleGymExercise failed", e);
+  }
+}

@@ -66,6 +66,19 @@ create table if not exists public.sticky_notes (
 
 create index if not exists idx_sticky_notes_date on public.sticky_notes(date);
 
+create table if not exists public.gym_completions (
+  id uuid primary key default gen_random_uuid(),
+  date text not null references public.days(date) on delete cascade,
+  exercise_key text not null,
+  completed boolean not null default false,
+  completed_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (date, exercise_key)
+);
+
+create index if not exists idx_gym_completions_date on public.gym_completions(date);
+
 -- Auto-updated_at triggers
 create or replace function public.touch_updated_at()
 returns trigger language plpgsql as $$
@@ -91,6 +104,10 @@ drop trigger if exists trg_sticky_notes_updated on public.sticky_notes;
 create trigger trg_sticky_notes_updated before update on public.sticky_notes
   for each row execute function public.touch_updated_at();
 
+drop trigger if exists trg_gym_completions_updated on public.gym_completions;
+create trigger trg_gym_completions_updated before update on public.gym_completions
+  for each row execute function public.touch_updated_at();
+
 -- Row Level Security: the app uses the service role key for all writes from the
 -- server, and the anon key is not exposed publicly (passcode gate sits in front).
 -- RLS is enabled but permissive for authenticated/service roles.
@@ -98,6 +115,7 @@ alter table public.days enable row level security;
 alter table public.block_completions enable row level security;
 alter table public.weekly_reviews enable row level security;
 alter table public.sticky_notes enable row level security;
+alter table public.gym_completions enable row level security;
 
 -- Allow all for anon + authenticated (the passcode gate is the real boundary).
 -- Tighten later if you ever expose the anon key publicly.
@@ -105,3 +123,4 @@ create policy "all days" on public.days for all using (true) with check (true);
 create policy "all blocks" on public.block_completions for all using (true) with check (true);
 create policy "all reviews" on public.weekly_reviews for all using (true) with check (true);
 create policy "all sticky_notes" on public.sticky_notes for all using (true) with check (true);
+create policy "all gym_completions" on public.gym_completions for all using (true) with check (true);

@@ -369,3 +369,39 @@ export async function toggleStickyNotePin(id: string, pinned: boolean) {
   if (error) throw error;
 }
 
+// ── Gym Completions ───────────────────────────────────────
+
+export async function getGymCompletions(date: string): Promise<Record<string, boolean>> {
+  try {
+    const supabase = await db();
+    const { data } = await supabase
+      .from("gym_completions")
+      .select("exercise_key, completed")
+      .eq("date", date);
+    const map: Record<string, boolean> = {};
+    for (const row of (data ?? []) as { exercise_key: string; completed: boolean }[]) {
+      map[row.exercise_key] = row.completed;
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}
+
+export async function toggleGymExercise(
+  date: string,
+  exerciseKey: string,
+  completed: boolean
+) {
+  await ensureDay(date);
+  const supabase = await db();
+  const completed_at = completed ? new Date().toISOString() : null;
+  const { error } = await supabase
+    .from("gym_completions")
+    .upsert(
+      { date, exercise_key: exerciseKey, completed, completed_at },
+      { onConflict: "date,exercise_key" }
+    );
+  if (error) throw error;
+}
+
