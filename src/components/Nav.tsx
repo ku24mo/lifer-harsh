@@ -7,10 +7,10 @@ import {
   CalendarRange,
   Grid3x3,
   Calendar,
-  StickyNote,
   BookOpen,
+  Dumbbell,
 } from "lucide-react";
-import { cn, dateKey } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 const NAV = [
   { href: "/", label: "Day", icon: CalendarDays },
@@ -18,15 +18,15 @@ const NAV = [
   { href: "/month", label: "Month", icon: Grid3x3 },
   { href: "/year", label: "Year", icon: Calendar },
   { href: "/journal", label: "Journal", icon: BookOpen },
+  { href: "/gym", label: "Workout", icon: Dumbbell },
 ];
 
 export function Nav() {
   const pathname = usePathname();
-  const today = dateKey(new Date());
 
   return (
     <>
-      {/* Bottom bar — all screens, bold wordmark + nav + note action */}
+      {/* Bottom bar — all screens, bold wordmark + nav */}
       <nav className="fixed bottom-0 inset-x-0 z-40 border-t-2 border-black bg-white safe-bottom">
         <div className="mx-auto max-w-6xl flex items-stretch">
           {/* Wordmark — bold, left */}
@@ -72,18 +72,6 @@ export function Nav() {
                 </Link>
               );
             })}
-          </div>
-
-          {/* Note button — navigates to today's day view */}
-          <div className="flex items-stretch border-l-2 border-black shrink-0">
-            <Link
-              href={`/?date=${today}`}
-              className="flex flex-col items-center justify-center gap-0.5 px-3 sm:px-4 py-2.5 text-[8px] sm:text-[10px] font-bold uppercase tracking-wider text-black/50 transition hover:bg-[var(--acid)] hover:text-black"
-              title="Today's sticky notes"
-            >
-              <StickyNote className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span className="hidden sm:inline">Note</span>
-            </Link>
           </div>
         </div>
       </nav>

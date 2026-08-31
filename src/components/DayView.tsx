@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, BookOpen, ArrowLeft, Footprints, Smartphone, Moon, Dumbbell } from "lucide-react";
+import { ChevronLeft, ChevronRight, BookOpen, ArrowLeft, Footprints, Smartphone, Moon } from "lucide-react";
 import {
   SECTIONS,
   blocksForDay,
@@ -26,7 +26,6 @@ import { StatsBar } from "./StatsBar";
 import { ManifestoTicker } from "./ManifestoTicker";
 import { StickyNotes } from "./StickyNotes";
 import { HeroTimer } from "./HeroTimer";
-import { workoutForDay } from "@/lib/workouts";
 import type { BlockCompletionRow, DayRow, StickyNoteRow } from "@/lib/types";
 
 interface HealthAverages {
@@ -373,25 +372,6 @@ export function DayView({ date, day: initialDay, blocks: initialBlocks, stickyNo
                     />
                   ))}
                 </div>
-
-                {/* Workout link — only in zoomed evening section on a workout day */}
-                {zoomedSection === "evening" && workoutForDay(weekday) && (
-                  <Link
-                    href="/gym"
-                    className={cn(
-                      "mt-6 flex items-center gap-2 border-t-2 border-black pt-4 transition hover:text-black",
-                      "text-black/60"
-                    )}
-                  >
-                    <Dumbbell className="h-4 w-4" />
-                    <span className="text-[12px] font-bold uppercase tracking-wider">
-                      {workoutForDay(weekday)?.title.split("—")[0].trim()}
-                    </span>
-                    <span className="ml-auto text-[11px] font-bold uppercase tracking-wider underline">
-                      open workout →
-                    </span>
-                  </Link>
-                )}
               </div>
             ) : (
               <div className="space-y-6">
@@ -399,28 +379,17 @@ export function DayView({ date, day: initialDay, blocks: initialBlocks, stickyNo
                   const sBlocks = sectionBlocks(section.key);
                   if (sBlocks.length === 0) return null;
                   return (
-                    <div key={section.key}>
-                      <BrutalistSection
-                        section={section}
-                        index={i}
-                        blocks={sBlocks}
-                        completions={blocks}
-                        isToday={isToday}
-                        nowMins={nowMins}
-                        isCurrent={currentSectionKey === section.key}
-                        onZoomIn={() => setZoomedSection(section.key)}
-                      />
-                      {/* Workout link — under evening section on a workout day */}
-                      {section.key === "evening" && workoutForDay(weekday) && (
-                        <Link
-                          href="/gym"
-                          className="mt-2 flex items-center gap-2 pl-[26px] text-[11px] font-bold uppercase tracking-wider text-black/50 transition hover:text-black"
-                        >
-                          <Dumbbell className="h-3.5 w-3.5" />
-                          <span>{workoutForDay(weekday)?.title.split("—")[0].trim()} →</span>
-                        </Link>
-                      )}
-                    </div>
+                    <BrutalistSection
+                      key={section.key}
+                      section={section}
+                      index={i}
+                      blocks={sBlocks}
+                      completions={blocks}
+                      isToday={isToday}
+                      nowMins={nowMins}
+                      isCurrent={currentSectionKey === section.key}
+                      onZoomIn={() => setZoomedSection(section.key)}
+                    />
                   );
                 })}
               </div>
