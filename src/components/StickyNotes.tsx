@@ -39,6 +39,7 @@ export function StickyNotes({ date, notes: initialNotes, adding: externalAdding,
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
   const [editColor, setEditColor] = useState("acid");
+  const [justAdded, setJustAdded] = useState(false);
 
   // Sync external adding state from bottom bar
   useEffect(() => {
@@ -58,46 +59,59 @@ export function StickyNotes({ date, notes: initialNotes, adding: externalAdding,
 
   const handleAdd = () => {
     if (!newContent.trim()) return;
+    const content = newContent.trim();
+    const color = newColor;
     startTransition(async () => {
-      await addStickyNote(date, newContent.trim(), newColor);
-      // Refresh from server
+      // Optimistic: add a temp note immediately
+      const tempId = `temp-${Date.now()}`;
+      setNotes((n) => [
+        ...n,
+        { id: tempId, date, content, color, pinned: false, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as StickyNoteRow,
+      ]);
+      setJustAdded(true);
+      setTimeout(() => setJustAdded(false), 600);
+      setNewContent("");
+      handleAddingChange(false);
+      await addStickyNote(date, content, color);
+      // Refresh from server to get real IDs
       const { fetchStickyNotes } = await import("@/lib/data-client");
       const fresh = await fetchStickyNotes(date);
       setNotes(fresh);
-      setNewContent("");
-      handleAddingChange(false);
     });
   };
 
   const handleDelete = (id: string) => {
+    // Optimistic: remove immediately
+    setNotes((n) => n.filter((note) => note.id !== id));
     startTransition(async () => {
       await deleteStickyNote(id);
-      setNotes((n) => n.filter((note) => note.id !== id));
     });
   };
 
   const handlePin = (id: string, pinned: boolean) => {
+    // Optimistic: update immediately
+    setNotes((n) =>
+      n
+        .map((note) =>
+          note.id === id ? { ...note, pinned: !pinned } : note
+        )
+        .sort((a, b) => Number(b.pinned) - Number(a.pinned))
+    );
     startTransition(async () => {
       await toggleStickyNotePin(id, !pinned);
-      setNotes((n) =>
-        n
-          .map((note) =>
-            note.id === id ? { ...note, pinned: !pinned } : note
-          )
-          .sort((a, b) => Number(b.pinned) - Number(a.pinned))
-      );
     });
   };
 
   const handleSaveEdit = (id: string) => {
+    // Optimistic: update immediately
+    setNotes((n) =>
+      n.map((note) =>
+        note.id === id ? { ...note, content: editContent.trim(), color: editColor } : note
+      )
+    );
+    setEditingId(null);
     startTransition(async () => {
       await updateStickyNote(id, editContent.trim(), editColor);
-      setNotes((n) =>
-        n.map((note) =>
-          note.id === id ? { ...note, content: editContent.trim(), color: editColor } : note
-        )
-      );
-      setEditingId(null);
     });
   };
 
@@ -172,7 +186,7 @@ export function StickyNotes({ date, notes: initialNotes, adding: externalAdding,
             <div
               key={note.id}
               className={cn(
-                "group relative border-2 border-black p-3 transition",
+                "group relative border-2 border-black p-3 transition animate-fade-in",
                 c.bg,
                 c.text,
                 note.pinned && "shadow-[3px_3px_0_0_#000]"

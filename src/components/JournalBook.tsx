@@ -17,10 +17,13 @@ export function JournalBook({ today, todayDay, pastEntries: initialPast }: Props
   const [free, setFree] = useState(todayDay?.journal_free ?? "");
   const [energy, setEnergy] = useState<number | null>(todayDay?.energy ?? null);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [pastEntries, setPastEntries] = useState(initialPast);
 
   const handleSave = async () => {
+    setSaving(true);
     await saveJournal(today, {}, free, energy);
+    setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 1500);
     // Move today to top of past entries if it's not there
@@ -84,11 +87,14 @@ export function JournalBook({ today, todayDay, pastEntries: initialPast }: Props
           </div>
           <button
             onClick={handleSave}
-            className="flex items-center gap-2 bg-black px-5 py-2.5 text-[12px] font-bold uppercase tracking-wider text-white transition hover:bg-[var(--acid)] hover:text-black"
+            disabled={saving}
+            className="flex items-center gap-2 bg-black px-5 py-2.5 text-[12px] font-bold uppercase tracking-wider text-white transition hover:bg-[var(--acid)] hover:text-black disabled:opacity-50"
           >
-            {saved ? (
+            {saving ? (
+              "saving…"
+            ) : saved ? (
               <>
-                <Check className="h-4 w-4" /> Saved
+                <Check className="h-4 w-4 animate-check-in" /> Saved
               </>
             ) : (
               "Save"

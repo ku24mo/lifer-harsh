@@ -46,7 +46,26 @@ export function DayView({ date, day: initialDay, blocks: initialBlocks, stickyNo
     Record<string, { day: DayRow | null; blocks: BlockCompletionRow[] }>
   >({});
 
-  const now = useMemo(() => new Date(), [selectedDate, zoomedSection]);
+  // Optimistic block toggle — updates local state immediately
+  const handleBlockToggle = useCallback((blockKey: string, completed: boolean) => {
+    setBlocks((prev) => {
+      const existing = prev.find((b) => b.block_key === blockKey);
+      if (existing) {
+        return prev.map((b) =>
+          b.block_key === blockKey ? { ...b, completed } : b
+        );
+      }
+      return [...prev, { date: selectedDate, block_key: blockKey, completed } as BlockCompletionRow];
+    });
+  }, [selectedDate]);
+
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 30000); // update every 30s
+    return () => clearInterval(id);
+  }, []);
+
+  const now = useMemo(() => new Date(), [selectedDate, zoomedSection, tick]);
   const isToday = selectedDate === dateKey(new Date());
   const todayKey = dateKey(new Date());
 
@@ -262,6 +281,7 @@ export function DayView({ date, day: initialDay, blocks: initialBlocks, stickyNo
                       completion={blockMap.get(block.key)}
                       isToday={isToday}
                       nowMins={nowMins}
+                      onToggle={handleBlockToggle}
                     />
                   ))}
                 </div>

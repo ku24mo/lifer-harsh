@@ -91,3 +91,42 @@ body {
 .marquee-track:hover {
   animation-play-state: paused;
 }
+
+/* Checkbox pop animation */
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+.animate-pop {
+  animation: pop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Check mark appear */
+@keyframes check-in {
+  0% { opacity: 0; transform: scale(0.5); }
+  60% { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-check-in {
+  animation: check-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Slide up for toasts */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up {
+  animation: slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Button press feedback */
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Smooth tap highlight removal on mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+}

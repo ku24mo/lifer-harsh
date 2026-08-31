@@ -14,29 +14,48 @@ interface Props {
   completion: BlockCompletionRow | undefined;
   isToday: boolean;
   nowMins: number;
+  onToggle?: (blockKey: string, completed: boolean) => void;
 }
 
-export function BlockRow({ date, block, completion, isToday, nowMins }: Props) {
+export function BlockRow({ date, block, completion, isToday, nowMins, onToggle }: Props) {
   const startMin = minutesOf(block.start);
   const endMin = minutesOf(block.end);
   const isCurrent = isToday && nowMins >= startMin && nowMins < endMin;
   const isPast = isToday && nowMins >= endMin;
-  const completed = completion?.completed ?? false;
+  const serverCompleted = completion?.completed ?? false;
+  const [optimisticCompleted, setOptimisticCompleted] = useState(serverCompleted);
+  const [justToggled, setJustToggled] = useState(false);
+  const completed = optimisticCompleted;
   const [expanded, setExpanded] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const [intention, setIntention] = useState(completion?.intention ?? "");
   const [outcome, setOutcome] = useState(completion?.outcome ?? "");
+  const [notesSaved, setNotesSaved] = useState(false);
+
+  // Sync from server when completion prop changes (e.g. date navigation)
+  const [lastServerKey, setLastServerKey] = useState(block.key + date);
+  if ((block.key + date) !== lastServerKey) {
+    setOptimisticCompleted(serverCompleted);
+    setLastServerKey(block.key + date);
+  }
 
   const handleToggle = () => {
+    const next = !completed;
+    setOptimisticCompleted(next);
+    setJustToggled(true);
+    setTimeout(() => setJustToggled(false), 600);
+    onToggle?.(block.key, next);
     startTransition(async () => {
-      await toggleBlockComplete(date, block.key, !completed);
+      await toggleBlockComplete(date, block.key, next);
     });
   };
 
   const handleSaveNotes = () => {
     startTransition(async () => {
       await saveBlockNotes(date, block.key, intention, outcome);
+      setNotesSaved(true);
+      setTimeout(() => setNotesSaved(false), 1500);
     });
   };
 
@@ -52,13 +71,14 @@ export function BlockRow({ date, block, completion, isToday, nowMins }: Props) {
           onClick={handleToggle}
           disabled={pending}
           className={cn(
-            "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center border-2 border-black transition",
-            completed ? "bg-black" : "bg-white hover:bg-[var(--acid)]",
+            "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center border-2 border-black transition-all duration-150 active:scale-90",
+            completed ? "bg-black scale-100" : "bg-white hover:bg-[var(--acid)] hover:scale-110",
+            justToggled && "animate-pop",
             pending && "opacity-50"
           )}
           aria-label={completed ? "Mark incomplete" : "Mark complete"}
         >
-          {completed && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
+          {completed && <Check className="h-3 w-3 text-white animate-check-in" strokeWidth={3} />}
         </button>
 
         <div className="min-w-0 flex-1">
@@ -79,7 +99,7 @@ export function BlockRow({ date, block, completion, isToday, nowMins }: Props) {
           </div>
           <h3
             className={cn(
-              "mt-0.5 text-[15px] font-semibold leading-snug",
+              "mt-0.5 text-[15px] font-semibold leading-snug transition-all duration-200",
               completed ? "text-black/30 line-through" : "text-black"
             )}
           >
@@ -90,7 +110,7 @@ export function BlockRow({ date, block, completion, isToday, nowMins }: Props) {
         <button
           onClick={() => setExpanded((e) => !e)}
           className={cn(
-            "mt-0.5 flex h-6 w-6 items-center justify-center text-black/30 hover:text-black",
+            "mt-0.5 flex h-6 w-6 items-center justify-center text-black/30 hover:text-black transition active:scale-90",
             block.type !== "work" && "invisible"
           )}
           aria-label="Expand notes"
@@ -147,6 +167,11 @@ export function BlockRow({ date, block, completion, isToday, nowMins }: Props) {
               className="mt-1 w-full border-2 border-black/10 bg-white px-3 py-2 text-[13px] text-black placeholder:text-black/30 outline-none focus:border-black"
             />
           </div>
+          {notesSaved && (
+            <div className="flex items-center gap-1 text-[10px] font-bold uppercase text-black animate-fade-in">
+              <Check className="h-3 w-3" /> saved
+            </div>
+          )}
         </div>
       )}
     </div>
