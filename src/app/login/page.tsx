@@ -20,7 +20,7 @@ export default function LoginPage() {
             Harsh
           </h1>
           <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.25em]">
-            <span className="bg-[var(--acid)] px-2 py-1 text-black">one shot</span>
+            <span className="bg-[var(--acid)] px-2 py-1 text-black">why not you?</span>
           </p>
         </div>
 
