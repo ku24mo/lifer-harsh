@@ -151,6 +151,25 @@ export async function getHealthAverages(
   }
 }
 
+/** Fetch the most recent day that has any health metrics logged. */
+export async function getLatestHealthEntry(
+  beforeDate: string
+): Promise<{ date: string; steps: number | null; screen_time_min: number | null; sleep_hours: number | null } | null> {
+  try {
+    const supabase = await db();
+    const { data } = await supabase
+      .from("days")
+      .select("date, steps, screen_time_min, sleep_hours")
+      .lte("date", beforeDate)
+      .or("steps.not.is.null,screen_time_min.not.is.null,sleep_hours.not.is.null")
+      .order("date", { ascending: false })
+      .limit(1);
+    return (data?.[0] as { date: string; steps: number | null; screen_time_min: number | null; sleep_hours: number | null } | undefined) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function saveJournal(
   date: string,
   answers: Record<string, string>,
