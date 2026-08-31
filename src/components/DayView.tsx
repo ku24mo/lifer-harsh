@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, BookOpen, ArrowLeft } from "lucide-react";
+import { ChevronLeft, ChevronRight, BookOpen, ArrowLeft, Footprints, Smartphone, Moon } from "lucide-react";
 import {
   SECTIONS,
   blocksForDay,
@@ -248,6 +248,57 @@ export function DayView({ date, day: initialDay, blocks: initialBlocks, stickyNo
                 </span>
                 <span className="ml-auto text-[11px] font-bold uppercase tracking-wider underline">
                   open book →
+                </span>
+              </Link>
+            )}
+
+            {/* Health check-in — today's logged metrics */}
+            {!isFuture && (day?.steps != null || day?.screen_time_min != null || day?.sleep_hours != null) && (
+              <div className="mt-6 border-t-2 border-black pt-4">
+                <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-black/40 mb-3">
+                  Today's check-in
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  {day?.steps != null && (
+                    <div className="flex flex-col items-center border-2 border-black/10 p-2">
+                      <Footprints className="h-4 w-4 text-black/40 mb-1" />
+                      <span className="text-[18px] font-bold tabular-nums text-black leading-none">
+                        {day.steps.toLocaleString()}
+                      </span>
+                      <span className="mt-0.5 text-[8px] font-bold uppercase tracking-wider text-black/40">steps</span>
+                    </div>
+                  )}
+                  {day?.screen_time_min != null && (
+                    <div className="flex flex-col items-center border-2 border-black/10 p-2">
+                      <Smartphone className="h-4 w-4 text-black/40 mb-1" />
+                      <span className="text-[18px] font-bold tabular-nums text-black leading-none">
+                        {Math.floor(day.screen_time_min / 60)}h{day.screen_time_min % 60 > 0 ? `${day.screen_time_min % 60}m` : ""}
+                      </span>
+                      <span className="mt-0.5 text-[8px] font-bold uppercase tracking-wider text-black/40">screen</span>
+                    </div>
+                  )}
+                  {day?.sleep_hours != null && (
+                    <div className="flex flex-col items-center border-2 border-black/10 p-2">
+                      <Moon className="h-4 w-4 text-black/40 mb-1" />
+                      <span className="text-[18px] font-bold tabular-nums text-black leading-none">
+                        {day.sleep_hours}h
+                      </span>
+                      <span className="mt-0.5 text-[8px] font-bold uppercase tracking-wider text-black/40">sleep</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Health check-in prompt — no data logged yet */}
+            {!isFuture && day?.steps == null && day?.screen_time_min == null && day?.sleep_hours == null && (
+              <Link
+                href="/journal"
+                className="mt-6 flex items-center gap-2 border-t-2 border-black pt-4 text-black/30 transition hover:text-black"
+              >
+                <Footprints className="h-4 w-4" />
+                <span className="text-[11px] font-bold uppercase tracking-wider">
+                  log steps, screen time, sleep →
                 </span>
               </Link>
             )}

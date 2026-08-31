@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Check, PenLine } from "lucide-react";
+import { Check, PenLine, Footprints, Smartphone, Moon } from "lucide-react";
 import { cn, dateKey, parseDateKey } from "@/lib/utils";
 import { saveJournal } from "@/lib/data";
-import { fetchDayBundle } from "@/lib/data-client";
 import type { DayRow } from "@/lib/types";
 
 interface Props {
@@ -16,13 +15,24 @@ interface Props {
 export function JournalBook({ today, todayDay, pastEntries: initialPast }: Props) {
   const [free, setFree] = useState(todayDay?.journal_free ?? "");
   const [energy, setEnergy] = useState<number | null>(todayDay?.energy ?? null);
+  const [steps, setSteps] = useState<string>(todayDay?.steps?.toString() ?? "");
+  const [screenTime, setScreenTime] = useState<string>(todayDay?.screen_time_min?.toString() ?? "");
+  const [sleepHours, setSleepHours] = useState<string>(todayDay?.sleep_hours?.toString() ?? "");
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [pastEntries, setPastEntries] = useState(initialPast);
 
   const handleSave = async () => {
     setSaving(true);
-    await saveJournal(today, {}, free, energy);
+    await saveJournal(
+      today,
+      {},
+      free,
+      energy,
+      steps ? parseInt(steps) : null,
+      screenTime ? parseInt(screenTime) : null,
+      sleepHours ? parseFloat(sleepHours) : null,
+    );
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 1500);
@@ -63,6 +73,58 @@ export function JournalBook({ today, todayDay, pastEntries: initialPast }: Props
           placeholder="write…"
         />
 
+        {/* Health metrics — quick log */}
+        <div className="mt-4 border-2 border-black/10 p-4">
+          <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-black/40 mb-3">
+            Daily check-in
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {/* Steps */}
+            <div>
+              <label className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-black/40">
+                <Footprints className="h-3 w-3" /> Steps
+              </label>
+              <input
+                type="number"
+                inputMode="numeric"
+                value={steps}
+                onChange={(e) => setSteps(e.target.value)}
+                placeholder="0"
+                className="mt-1 w-full border-2 border-black/10 bg-white px-2 py-1.5 text-[16px] font-bold tabular-nums text-black placeholder:text-black/20 outline-none focus:border-black"
+              />
+            </div>
+            {/* Screen time */}
+            <div>
+              <label className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-black/40">
+                <Smartphone className="h-3 w-3" /> Screen (min)
+              </label>
+              <input
+                type="number"
+                inputMode="numeric"
+                value={screenTime}
+                onChange={(e) => setScreenTime(e.target.value)}
+                placeholder="0"
+                className="mt-1 w-full border-2 border-black/10 bg-white px-2 py-1.5 text-[16px] font-bold tabular-nums text-black placeholder:text-black/20 outline-none focus:border-black"
+              />
+            </div>
+            {/* Sleep */}
+            <div>
+              <label className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-black/40">
+                <Moon className="h-3 w-3" /> Sleep (h)
+              </label>
+              <input
+                type="number"
+                inputMode="decimal"
+                step="0.1"
+                value={sleepHours}
+                onChange={(e) => setSleepHours(e.target.value)}
+                placeholder="0"
+                className="mt-1 w-full border-2 border-black/10 bg-white px-2 py-1.5 text-[16px] font-bold tabular-nums text-black placeholder:text-black/20 outline-none focus:border-black"
+              />
+            </div>
+          </div>
+        </div>
+
         <div className="mt-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-bold uppercase tracking-wider text-black/40">
@@ -74,7 +136,7 @@ export function JournalBook({ today, todayDay, pastEntries: initialPast }: Props
                   key={n}
                   onClick={() => setEnergy(n)}
                   className={cn(
-                    "h-8 w-8 border-2 border-black text-[12px] font-bold transition",
+                    "h-8 w-8 border-2 border-black text-[12px] font-bold transition active:scale-90",
                     energy === n
                       ? "bg-[var(--acid)] text-black"
                       : "bg-white text-black/40 hover:bg-black hover:text-white"
@@ -88,7 +150,7 @@ export function JournalBook({ today, todayDay, pastEntries: initialPast }: Props
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 bg-black px-5 py-2.5 text-[12px] font-bold uppercase tracking-wider text-white transition hover:bg-[var(--acid)] hover:text-black disabled:opacity-50"
+            className="flex items-center gap-2 bg-black px-5 py-2.5 text-[12px] font-bold uppercase tracking-wider text-white transition hover:bg-[var(--acid)] hover:text-black disabled:opacity-50 active:scale-95"
           >
             {saving ? (
               "saving…"
@@ -125,6 +187,28 @@ export function JournalBook({ today, todayDay, pastEntries: initialPast }: Props
                   </span>
                 )}
               </div>
+
+              {/* Health metrics for past entries */}
+              {(entry.steps != null || entry.screen_time_min != null || entry.sleep_hours != null) && (
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {entry.steps != null && (
+                    <span className="flex items-center gap-1 border border-black/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black/60">
+                      <Footprints className="h-3 w-3" /> {entry.steps.toLocaleString()} steps
+                    </span>
+                  )}
+                  {entry.screen_time_min != null && (
+                    <span className="flex items-center gap-1 border border-black/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black/60">
+                      <Smartphone className="h-3 w-3" /> {Math.floor(entry.screen_time_min / 60)}h {entry.screen_time_min % 60}m
+                    </span>
+                  )}
+                  {entry.sleep_hours != null && (
+                    <span className="flex items-center gap-1 border border-black/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black/60">
+                      <Moon className="h-3 w-3" /> {entry.sleep_hours}h sleep
+                    </span>
+                  )}
+                </div>
+              )}
+
               <div className="border-l-2 border-black pl-4">
                 <p className="text-[15px] leading-relaxed text-black whitespace-pre-wrap font-serif">
                   {entry.journal_free}

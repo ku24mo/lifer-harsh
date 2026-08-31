@@ -122,7 +122,10 @@ export async function saveJournal(
   date: string,
   answers: Record<string, string>,
   free: string,
-  energy: number | null
+  energy: number | null,
+  steps?: number | null,
+  screenTimeMin?: number | null,
+  sleepHours?: number | null
 ) {
   await ensureDay(date);
   const supabase = await db();
@@ -132,6 +135,9 @@ export async function saveJournal(
       journal_answers: answers,
       journal_free: free,
       energy,
+      steps: steps ?? null,
+      screen_time_min: screenTimeMin ?? null,
+      sleep_hours: sleepHours ?? null,
       updated_at: new Date().toISOString(),
     })
     .eq("date", date);

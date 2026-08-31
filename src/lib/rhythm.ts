@@ -141,6 +141,15 @@ export const RHYTHM: RhythmBlock[] = [
     timer: false,
     section: "evening",
   },
+  {
+    key: "journaling",
+    start: "21:00",
+    end: "21:30",
+    label: "Journaling — log steps, screen time, reflect",
+    type: "personal",
+    timer: false,
+    section: "evening",
+  },
 ];
 
 export interface SectionDef {
@@ -179,9 +188,9 @@ export const SECTIONS: SectionDef[] = [
   {
     key: "evening",
     label: "Evening",
-    subtitle: "Train · Refuel",
+    subtitle: "Train · Refuel · Reflect",
     accent: "emerald",
-    blockKeys: ["gym", "dinner"],
+    blockKeys: ["gym", "dinner", "journaling"],
   },
 ];
 

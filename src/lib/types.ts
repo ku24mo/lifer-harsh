@@ -4,6 +4,9 @@ export interface DayRow {
   journal_answers: Record<string, string> | null;
   journal_free: string | null;
   energy: number | null;
+  steps: number | null;
+  screen_time_min: number | null;
+  sleep_hours: number | null;
 }
 
 export interface BlockCompletionRow {

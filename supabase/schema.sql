@@ -8,9 +8,26 @@ create table if not exists public.days (
   journal_answers jsonb,                       -- guided evening prompt answers
   journal_free text,                           -- free-form journal text
   energy int,                                  -- 1..5 optional
+  steps int,                                   -- daily step count
+  screen_time_min int,                         -- daily screen time in minutes
+  sleep_hours numeric(4,1),                    -- hours slept (e.g. 7.5)
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Add health columns to existing days table if they don't exist
+do $$
+begin
+  if not exists (select 1 from information_schema.columns where table_name = 'days' and column_name = 'steps') then
+    alter table public.days add column steps int;
+  end if;
+  if not exists (select 1 from information_schema.columns where table_name = 'days' and column_name = 'screen_time_min') then
+    alter table public.days add column screen_time_min int;
+  end if;
+  if not exists (select 1 from information_schema.columns where table_name = 'days' and column_name = 'sleep_hours') then
+    alter table public.days add column sleep_hours numeric(4,1);
+  end if;
+end $$;
 
 create table if not exists public.block_completions (
   id uuid primary key default gen_random_uuid(),
