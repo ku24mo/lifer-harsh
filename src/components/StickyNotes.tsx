@@ -232,7 +232,7 @@ export function StickyNotes({ date, notes: initialNotes, adding: externalAdding,
                   <p className="text-[13px] font-medium leading-snug whitespace-pre-wrap pr-4">
                     {note.content}
                   </p>
-                  <div className="mt-2 flex items-center gap-2 opacity-0 transition group-hover:opacity-100">
+                  <div className="mt-2 flex items-center gap-2 opacity-100 sm:opacity-0 transition sm:group-hover:opacity-100">
                     <button
                       onClick={() => handlePin(note.id, note.pinned)}
                       className="text-[10px] font-bold uppercase opacity-60 hover:opacity-100"
