@@ -1,7 +1,7 @@
 import { Nav, ContentShell } from "@/components/Nav";
 import { MonthView } from "@/components/MonthView";
 import { getDayBundleRange, getStickyNotesRange } from "@/lib/data";
-import { dateKey } from "@/lib/utils";
+import { dateKey, parseDateKey } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -9,11 +9,11 @@ function resolveYearMonth(
   yParam: string | undefined,
   mParam: string | undefined
 ): { year: number; month: number } {
-  const now = new Date();
-  const y = yParam ? parseInt(yParam, 10) : now.getFullYear();
-  const m = mParam ? parseInt(mParam, 10) - 1 : now.getMonth();
-  if (isNaN(y) || y < 2000 || y > 2100) return { year: now.getFullYear(), month: now.getMonth() };
-  if (isNaN(m) || m < 0 || m > 11) return { year: y, month: now.getMonth() };
+  const today = parseDateKey(dateKey(new Date())); // IST date
+  const y = yParam ? parseInt(yParam, 10) : today.getFullYear();
+  const m = mParam ? parseInt(mParam, 10) - 1 : today.getMonth();
+  if (isNaN(y) || y < 2000 || y > 2100) return { year: today.getFullYear(), month: today.getMonth() };
+  if (isNaN(m) || m < 0 || m > 11) return { year: y, month: today.getMonth() };
   return { year: y, month: m };
 }
 
