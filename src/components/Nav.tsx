@@ -63,7 +63,7 @@ export function Nav() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex flex-1 sm:flex-none flex-col items-center justify-center gap-0.5 sm:gap-1 sm:px-4 py-2.5 text-[8px] sm:text-[10px] font-bold uppercase tracking-wider transition",
+                    "flex flex-1 sm:flex-none flex-col items-center justify-center gap-0.5 sm:gap-1 sm:px-4 py-2.5 text-[8px] sm:text-[10px] font-bold uppercase tracking-wider transition-colors duration-150",
                     active ? "bg-[var(--acid)] text-black" : "text-black/50 hover:text-black"
                   )}
                 >
